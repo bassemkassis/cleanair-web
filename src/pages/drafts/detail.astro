@@ -1,0 +1,422 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+<DashboardLayout title="Détail intervention — CleanAir">
+  <div id="detail-root" class="animate-fade-in">
+    <div id="detail-loading" class="py-20 text-center">
+      <div class="inline-block w-10 h-10 border-2 border-ca-primary border-t-transparent rounded-full animate-spin"></div>
+      <p class="mt-4 text-gray-500">Chargement de l'intervention...</p>
+    </div>
+
+    <div id="detail-error" class="hidden py-20 text-center">
+      <p class="text-red-600 font-medium">Intervention introuvable</p>
+      <a href="/drafts" class="mt-4 inline-block text-ca-primary hover:underline">← Retour aux interventions</a>
+    </div>
+
+    <div id="detail-content" class="hidden max-w-6xl mx-auto">
+      <nav class="text-sm text-gray-500 mb-4">
+        <a href="/drafts" class="hover:text-ca-primary">Interventions</a>
+        <span class="mx-2">›</span>
+        <span id="breadcrumb-id" class="font-mono text-gray-700"></span>
+      </nav>
+
+      <!-- Hero + dates + actions -->
+      <div class="section-card p-6 mb-4">
+        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+          <div class="flex-1 min-w-0">
+            <h1 id="hero-client" class="text-2xl font-bold text-gray-900"></h1>
+            <p id="hero-meta" class="text-sm text-gray-500 mt-1"></p>
+            <div id="hero-badges" class="flex flex-wrap gap-2 mt-3"></div>
+          </div>
+          <div class="flex flex-wrap gap-2 shrink-0">
+            <button id="btn-send-x3" class="inline-flex items-center gap-2 px-4 py-2.5 bg-ca-primary hover:bg-ca-primary-dark text-white font-semibold rounded-lg text-sm transition disabled:opacity-50 disabled:cursor-not-allowed">
+              <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z"/></svg>
+              Envoyer X3
+            </button>
+            <button id="btn-pdf-all" class="px-4 py-2.5 border border-ca-primary text-ca-primary hover:bg-ca-primary/5 font-semibold rounded-lg text-sm transition">
+              Générer tous les PDFs
+            </button>
+          </div>
+        </div>
+
+        <!-- Date timeline bar -->
+        <div id="hero-dates" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6 pt-6 border-t border-gray-100"></div>
+        <div id="sync-stepper" class="hidden mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-800"></div>
+      </div>
+
+      <!-- Horizontal tabs -->
+      <div class="detail-tabs-sticky">
+        <div class="section-card px-2 pt-2">
+          <div class="detail-tabs" id="detail-tabs" role="tablist">
+            <button type="button" class="detail-tab active" data-tab="general" role="tab">Général</button>
+            <button type="button" class="detail-tab" data-tab="client" role="tab">Client</button>
+            <button type="button" class="detail-tab" data-tab="dates" role="tab">Dates</button>
+            <button type="button" class="detail-tab" data-tab="technicien" role="tab">Technicien</button>
+            <button type="button" class="detail-tab" data-tab="signatures" role="tab">Signatures</button>
+            <button type="button" class="detail-tab" data-tab="parcs" role="tab">Parcs <span id="parc-count" class="ml-1 text-xs bg-gray-200 px-1.5 rounded-full"></span></button>
+            <button type="button" class="detail-tab" data-tab="listes" role="tab">Ressources</button>
+            <button type="button" class="detail-tab" data-tab="meta" role="tab">Métadonnées</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab panels -->
+      <div class="section-card p-6 mt-0">
+        <div id="panel-general" class="detail-tab-panel active" role="tabpanel">
+          <h2 class="text-lg font-bold text-gray-900 mb-4">Général & identification</h2>
+          <div id="mount-general"></div>
+        </div>
+        <div id="panel-client" class="detail-tab-panel" role="tabpanel">
+          <h2 class="text-lg font-bold text-gray-900 mb-4">Client & contact</h2>
+          <div id="mount-client"></div>
+        </div>
+        <div id="panel-dates" class="detail-tab-panel" role="tabpanel">
+          <h2 class="text-lg font-bold text-gray-900 mb-4">Planning & dates</h2>
+          <div id="mount-dates"></div>
+        </div>
+        <div id="panel-technicien" class="detail-tab-panel" role="tabpanel">
+          <h2 class="text-lg font-bold text-gray-900 mb-4">Technicien & localisation</h2>
+          <div id="mount-technicien"></div>
+        </div>
+        <div id="panel-signatures" class="detail-tab-panel" role="tabpanel">
+          <h2 class="text-lg font-bold text-gray-900 mb-4">Signatures globales</h2>
+          <div id="mount-signatures"></div>
+        </div>
+        <div id="panel-parcs" class="detail-tab-panel" role="tabpanel">
+          <h2 class="text-lg font-bold text-gray-900 mb-4">Équipements & rapports</h2>
+          <div id="mount-parcs"></div>
+        </div>
+        <div id="panel-listes" class="detail-tab-panel" role="tabpanel">
+          <h2 class="text-lg font-bold text-gray-900 mb-4">Ressources, articles mission & chrono</h2>
+          <div id="mount-listes"></div>
+        </div>
+        <div id="panel-meta" class="detail-tab-panel" role="tabpanel">
+          <h2 class="text-lg font-bold text-gray-900 mb-4">Métadonnées intervention</h2>
+          <div id="mount-meta"></div>
+          <details class="mt-6 pt-4 border-t">
+            <summary class="text-sm font-medium text-gray-500 cursor-pointer">JSON brut (debug)</summary>
+            <pre id="raw-json" class="mt-3 text-xs font-mono bg-gray-900 text-green-400 p-4 rounded-lg overflow-auto max-h-96"></pre>
+          </details>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PDF Modal -->
+  <div id="pdf-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between p-4 border-b">
+        <h3 class="font-semibold">Aperçu PDF</h3>
+        <div class="flex gap-2">
+          <a id="pdf-download" href="#" download class="px-3 py-1.5 bg-ca-primary text-white text-sm rounded-lg">Télécharger</a>
+          <button id="pdf-close" class="px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">Fermer</button>
+        </div>
+      </div>
+      <iframe id="pdf-iframe" class="flex-1 min-h-[60vh] w-full"></iframe>
+    </div>
+  </div>
+
+  <!-- X3 Confirm Modal -->
+  <div id="x3-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+      <h3 class="text-lg font-bold text-gray-900">Envoyer vers X3 ?</h3>
+      <p class="text-sm text-gray-600 mt-2">Cette action finalise l'intervention et envoie le rapport vers Sage X3, comme sur l'application mobile.</p>
+      <div id="x3-summary" class="mt-4 p-3 bg-gray-50 rounded-lg text-sm"></div>
+      <div class="flex gap-3 mt-6">
+        <button id="x3-cancel" class="flex-1 py-2.5 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">Annuler</button>
+        <button id="x3-confirm" class="flex-1 py-2.5 bg-ca-primary text-white rounded-lg text-sm font-semibold hover:bg-ca-primary-dark">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Server-rendered component templates (hydrated via fetch + innerHTML workaround) -->
+  <!-- We use client-side rendering for detail since it's dynamic -->
+  <script>
+    import { getDraft, sendInterventionToX3, generatePdf } from '../../lib/api';
+    import { normalizeDraft, buildReportPayload, formatDate, formatPlannedSlot, formatX3DateTime } from '../../lib/utils';
+    import { renderSyncStatusBadge } from '../../lib/sync-status';
+    import { renderParcsHtml, initParcInteractions } from '../../lib/parc-ui';
+    import type { InterventionDraft, Parc } from '../../lib/types';
+
+    const id = new URLSearchParams(window.location.search).get('id') || '';
+    let draft: InterventionDraft | null = null;
+    let x3Sending = false;
+
+    function el<T extends HTMLElement>(sel: string) {
+      return document.querySelector(sel) as T;
+    }
+
+    if (!id) {
+      el('#detail-loading')!.classList.add('hidden');
+      el('#detail-error')!.classList.remove('hidden');
+    }
+
+    function renderFieldGrid(fields: { label: string; value: unknown; mono?: boolean; multiline?: boolean; href?: string }[]) {
+      return `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${fields.map((f) => {
+        const val = f.value === null || f.value === undefined || f.value === '' ? '—' : String(f.value);
+        if (f.href) return `<div><div class="field-label">${f.label}</div><a href="${f.href}" target="_blank" class="field-value text-ca-primary hover:underline">${val}</a></div>`;
+        if (f.multiline) return `<div class="md:col-span-2"><div class="field-label">${f.label}</div><div class="field-value mt-1 p-3 bg-gray-50 rounded-lg text-sm whitespace-pre-wrap">${val}</div></div>`;
+        return `<div><div class="field-label">${f.label}</div><div class="field-value mt-0.5 ${f.mono ? 'font-mono text-sm' : ''}">${val}</div></div>`;
+      }).join('')}</div>`;
+    }
+
+    function initTabs() {
+      const tabs = document.querySelectorAll('.detail-tab');
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const name = tab.getAttribute('data-tab')!;
+          tabs.forEach((t) => t.classList.toggle('active', t === tab));
+          document.querySelectorAll('.detail-tab-panel').forEach((panel) => {
+            panel.classList.toggle('active', panel.id === `panel-${name}`);
+          });
+        });
+      });
+    }
+
+    function renderDateBar(inv: InterventionDraft['intervention'], insertDate?: string) {
+      const items = [
+        { label: 'Date planifiée', value: formatPlannedSlot(inv), sub: inv.enddate ? `Fin: ${formatX3DateTime(inv.enddate, inv.finishHour)}` : '' },
+        { label: 'Début réel', value: formatX3DateTime(inv.realstartdate, inv.realstarttime), sub: '' },
+        { label: 'Fin réelle', value: formatX3DateTime(inv.realenddate, inv.realendtime), sub: inv.realduration ? `Durée: ${inv.realduration}` : '' },
+        { label: 'Enregistré le', value: formatDate(insertDate), sub: '' },
+      ];
+      el('#hero-dates')!.innerHTML = items.map((item) => `
+        <div class="p-3 bg-gray-50 rounded-lg">
+          <div class="text-[10px] font-semibold uppercase text-gray-500 tracking-wide">${item.label}</div>
+          <div class="text-sm font-semibold text-gray-900 mt-1">${item.value}</div>
+          ${item.sub ? `<div class="text-xs text-gray-500 mt-0.5">${item.sub}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function mountSections(d: InterventionDraft) {
+      const inv = d.intervention;
+
+      el('div#mount-general')!.innerHTML = renderFieldGrid([
+        { label: 'ID intervention', value: inv.interventionId, mono: true },
+        { label: 'ID NP', value: inv.npid, mono: true },
+        { label: 'Description', value: inv.description, multiline: true },
+        { label: 'Type', value: inv.type },
+        { label: 'Type ID', value: inv.typeId, mono: true },
+        { label: 'État', value: inv.state },
+        { label: 'Statut mobile', value: inv.mobilestatus },
+        { label: 'Planifiée', value: inv.isPlanified },
+        { label: 'Urgence', value: inv.urgency },
+        { label: 'Satisfaction', value: inv.satisfaction },
+        { label: 'BL', value: inv.BL },
+        { label: 'Articles BL', value: inv.BL_Article?.join(', ') },
+      ]);
+
+      el('div#mount-client')!.innerHTML = renderFieldGrid([
+        { label: 'Client', value: inv.client },
+        { label: 'ID client', value: inv.id_client, mono: true },
+        { label: 'Adresse', value: inv.address },
+        { label: 'Code adresse', value: inv.codeAdress, mono: true },
+        { label: 'Téléphone', value: inv.tel },
+        { label: 'Email', value: inv.email },
+      ]);
+
+      el('div#mount-dates')!.innerHTML = renderFieldGrid([
+        { label: 'Date planifiée', value: inv.date, mono: true },
+        { label: 'Heure début planifiée', value: inv.debuteHour },
+        { label: 'Date fin planifiée', value: inv.enddate, mono: true },
+        { label: 'Heure fin planifiée', value: inv.finishHour },
+        { label: 'Durée planifiée', value: inv.duration },
+        { label: 'Date calendrier', value: inv.calendardate },
+        { label: 'Début réel (date)', value: inv.realstartdate, mono: true },
+        { label: 'Début réel (heure)', value: inv.realstarttime },
+        { label: 'Fin réelle (date)', value: inv.realenddate, mono: true },
+        { label: 'Fin réelle (heure)', value: inv.realendtime },
+        { label: 'Durée réelle', value: inv.realduration },
+        { label: 'Départ réel (date)', value: inv.realdepartureDate, mono: true },
+        { label: 'Départ réel (heure)', value: inv.realdepartureTime },
+        { label: 'Dates formatées début', value: inv.formattedstartDate },
+        { label: 'Dates formatées fin', value: inv.formattedEndDate },
+        { label: 'Durée formatée', value: inv.formattedDurationDate },
+      ]);
+
+      const mapUrl = inv.locationLatitude && inv.locationLongitude
+        ? `https://www.google.com/maps?q=${inv.locationLatitude},${inv.locationLongitude}` : undefined;
+
+      el('div#mount-technicien')!.innerHTML = renderFieldGrid([
+        { label: 'Code technicien', value: inv.technicienname, mono: true },
+        { label: 'Nom technicien', value: inv.technicienRealName },
+        { label: 'Latitude', value: inv.locationLatitude, mono: true },
+        { label: 'Longitude', value: inv.locationLongitude, mono: true },
+        ...(mapUrl ? [{ label: 'Carte', value: 'Ouvrir Google Maps', href: mapUrl }] : []),
+      ]);
+
+      el('div#mount-signatures')!.innerHTML = `
+        <div class="grid md:grid-cols-2 gap-4">
+          <div><div class="field-label mb-2">Signature technicien</div>${inv.globalTechnicienSignature || '<span class="text-gray-400">—</span>'}</div>
+          <div><div class="field-label mb-2">Signature client</div>${inv.globalClientSignature || '<span class="text-gray-400">—</span>'}</div>
+        </div>
+        <div class="grid md:grid-cols-3 gap-4 mt-4">
+          <div><div class="field-label">Note client</div><div class="field-value">${inv.globalClientRating || '—'}/5</div></div>
+          <div class="md:col-span-2"><div class="field-label">Commentaire</div><div class="field-value">${inv.globalClientComment || '—'}</div></div>
+        </div>`;
+
+      el('div#mount-meta')!.innerHTML = renderFieldGrid([
+        { label: 'Date enregistrement', value: formatDate(d.insertDate) },
+        { label: 'Utilisateur', value: d.user, mono: true },
+        { label: 'Statut sync', value: d.syncStatus },
+        { label: 'Erreur sync', value: d.syncError, multiline: true },
+        { label: 'Synchronisé le', value: formatDate(d.syncedAt) },
+        { label: 'Soumis le', value: formatDate(d.submittedAt) },
+        { label: 'Soumis par', value: d.submittedBy },
+      ]);
+
+      el('pre#raw-json')!.textContent = JSON.stringify(d, null, 2);
+
+      renderParcs(inv.parcs ?? [], inv);
+
+      el('div#mount-listes')!.innerHTML = renderLists(inv);
+    }
+
+    function renderLists(inv: InterventionDraft['intervention']) {
+      let html = '';
+      const res = inv.ressources ?? [];
+      if (res.length) {
+        html += `<table class="w-full text-sm mb-6"><thead class="bg-gray-50 text-xs uppercase"><tr><th class="px-3 py-2 text-left">Ressource</th><th class="px-3 py-2">Qté</th><th class="px-3 py-2">Début</th><th class="px-3 py-2">Fin</th></tr></thead><tbody>`;
+        res.forEach((r) => { html += `<tr class="border-t"><td class="px-3 py-2">${r.designation_ressource}</td><td class="px-3 py-2">${r.quantiteRessource}</td><td class="px-3 py-2">${r.dateDebut} ${r.heureDebut}</td><td class="px-3 py-2">${r.dateFin} ${r.heureFin}</td></tr>`; });
+        html += '</tbody></table>';
+      }
+      const arts = inv.articleMissionExpense ?? [];
+      if (arts.length) {
+        html += `<h4 class="font-semibold text-sm mb-2">Articles mission</h4><table class="w-full text-sm mb-6"><thead class="bg-gray-50 text-xs uppercase"><tr><th class="px-3 py-2 text-left">Désignation</th><th class="px-3 py-2">Qté</th><th class="px-3 py-2">Réf.</th></tr></thead><tbody>`;
+        arts.forEach((a) => { html += `<tr class="border-t"><td class="px-3 py-2">${a.designation}</td><td class="px-3 py-2">${a.quantity}</td><td class="px-3 py-2">${a.reference}</td></tr>`; });
+        html += '</tbody></table>';
+      }
+      const chrono = inv.pausedChronoDataArray ?? [];
+      if (chrono.length) {
+        html += '<h4 class="font-semibold text-sm mb-2">Pauses chrono</h4>';
+        chrono.forEach((c, i) => {
+          html += `<div class="p-3 bg-gray-50 rounded-lg mb-2 text-sm"><strong>#${i+1}</strong> Suspendu: ${c.suspendedtime} · Reprise: ${c.reviewtime} · ${c.percentageofcompletion}% · ${c.observation}</div>`;
+        });
+      }
+      return html || '<p class="text-gray-400 text-sm text-center py-4">Aucune donnée</p>';
+    }
+
+    function renderParcs(parcs: Parc[], inv: InterventionDraft['intervention']) {
+      const mount = el('div#mount-parcs')!;
+      mount.innerHTML = renderParcsHtml(parcs);
+      initParcInteractions(mount, (parcId) => {
+        const parc = parcs.find((p) => p.id === parcId);
+        if (parc) generatePdfForParc(parc, inv);
+      });
+    }
+
+    async function generatePdfForParc(parc: Parc, inv: InterventionDraft['intervention']) {
+      const btn = document.querySelector(`.pdf-btn[data-parc-id="${parc.id}"]`) as HTMLButtonElement;
+      if (btn) { btn.disabled = true; btn.textContent = '…'; }
+      try {
+        const report = buildReportPayload(parc, inv);
+        const blob = await generatePdf(report);
+        const url = URL.createObjectURL(blob);
+        el<HTMLIFrameElement>('#pdf-iframe').src = url;
+        const dl = el<HTMLAnchorElement>('#pdf-download');
+        dl.href = url;
+        dl.download = `rapport-${parc.id}.pdf`;
+        el('#pdf-modal')!.classList.remove('hidden');
+      } catch (e) {
+        alert('Erreur lors de la génération du PDF');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'PDF'; }
+      }
+    }
+
+    function updateSendButton() {
+      const btn = el<HTMLButtonElement>('#btn-send-x3');
+      const alreadySent = draft?.intervention.state === 'oui' || draft?.syncStatus === 'synced';
+      const canSend = !x3Sending && !alreadySent;
+      btn.disabled = !canSend;
+      btn.title = x3Sending ? 'Envoi en cours…' : alreadySent ? 'Déjà envoyé vers X3' : '';
+    }
+
+    function updateUI() {
+      if (!draft) return;
+      const inv = draft.intervention;
+      const status = draft.syncStatus ?? 'draft';
+
+      el('#breadcrumb-id')!.textContent = draft.id;
+      el('#hero-client')!.textContent = inv.client ?? 'Intervention';
+      el('#hero-meta')!.textContent = `${inv.type ?? ''} · ${inv.technicienRealName || inv.technicienname || draft.user || ''} · ${inv.address ?? ''}`;
+      el('#parc-count')!.textContent = String(inv.parcs?.length ?? 0);
+      renderDateBar(inv, draft.insertDate);
+
+      const statusHtml = renderSyncStatusBadge(status);
+      el('#hero-badges')!.innerHTML = `
+        ${statusHtml}
+        <span class="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700">${inv.isPlanified ? 'Planifiée' : 'Non planifiée'}</span>
+        ${inv.urgency ? `<span class="text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-700">${inv.urgency}</span>` : ''}`;
+
+      updateSendButton();
+    }
+
+    async function load() {
+      try {
+        draft = normalizeDraft(await getDraft(id));
+        el('#detail-loading')!.classList.add('hidden');
+        el('#detail-content')!.classList.remove('hidden');
+        mountSections(draft);
+        updateUI();
+        initTabs();
+      } catch {
+        el('#detail-loading')!.classList.add('hidden');
+        el('#detail-error')!.classList.remove('hidden');
+      }
+    }
+
+    el('#pdf-close')?.addEventListener('click', () => el('#pdf-modal')!.classList.add('hidden'));
+
+    el('#btn-send-x3')?.addEventListener('click', () => {
+      if (!draft) return;
+      const inv = draft.intervention;
+      el('#x3-summary')!.innerHTML = `
+        <div><strong>Client:</strong> ${inv.client}</div>
+        <div><strong>ID:</strong> ${draft.id}</div>
+        <div><strong>Parcs:</strong> ${inv.parcs?.length ?? 0}</div>`;
+      el('#x3-modal')!.classList.remove('hidden');
+    });
+
+    el('#x3-cancel')?.addEventListener('click', () => el('#x3-modal')!.classList.add('hidden'));
+
+    el('#x3-confirm')?.addEventListener('click', async () => {
+      if (!draft) return;
+      el('#x3-modal')!.classList.add('hidden');
+      const stepper = el('#sync-stepper')!;
+      stepper.classList.remove('hidden');
+      stepper.innerHTML = '<div class="text-blue-700 font-medium animate-pulse-soft">Mise à jour intervention et envoi rapport…</div>';
+
+      x3Sending = true;
+      updateSendButton();
+
+      try {
+        await sendInterventionToX3(draft.intervention);
+        draft.intervention.state = 'oui';
+        draft.syncStatus = 'synced';
+        draft.syncError = undefined;
+        stepper.innerHTML = '<div class="text-green-700 font-medium">Intervention envoyée vers X3 avec succès.</div>';
+        updateUI();
+      } catch (e) {
+        draft.syncStatus = 'failed';
+        draft.syncError = e instanceof Error ? e.message : 'Erreur inconnue';
+        stepper.innerHTML = `<div class="text-red-600">Échec : ${draft.syncError}</div>`;
+        updateUI();
+      } finally {
+        x3Sending = false;
+        updateSendButton();
+      }
+    });
+
+    el('#btn-pdf-all')?.addEventListener('click', async () => {
+      if (!draft?.intervention.parcs?.length) return;
+      for (const parc of draft.intervention.parcs) {
+        await generatePdfForParc(parc, draft.intervention);
+        await new Promise((r) => setTimeout(r, 500));
+      }
+    });
+
+    if (id) load();
+  </script>
+</DashboardLayout>

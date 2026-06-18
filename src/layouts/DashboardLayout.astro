@@ -1,0 +1,95 @@
+---
+import BaseLayout from './BaseLayout.astro';
+interface Props {
+  title?: string;
+  activeNav?: string;
+}
+const { title = 'CleanAir Backoffice', activeNav = 'dashboard' } = Astro.props;
+---
+<BaseLayout title={title}>
+  <div class="min-h-screen flex">
+    <aside class="hidden lg:flex w-64 flex-col bg-ca-primary-dark text-white shrink-0">
+      <div class="p-6 border-b border-white/10">
+        <div class="text-lg font-bold tracking-tight">CleanAir</div>
+        <div class="text-xs text-white/60 mt-1">Backoffice SAV</div>
+      </div>
+      <nav class="flex-1 p-4 space-y-1">
+        <a
+          href="/dashboard"
+          class:list={[
+            'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
+            activeNav === 'dashboard' ? 'bg-white/15 text-white' : 'text-white/70 hover:bg-white/10',
+          ]}
+        >
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          Dashboard
+        </a>
+        <a
+          href="/drafts"
+          class:list={[
+            'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
+            activeNav === 'drafts' ? 'bg-white/15 text-white' : 'text-white/70 hover:bg-white/10',
+          ]}
+        >
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Interventions
+        </a>
+      </nav>
+      <div class="p-4 border-t border-white/10">
+        <div id="sidebar-user" class="text-sm text-white/90 truncate font-medium"></div>
+        <button id="logout-btn" type="button" class="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-white/80 bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          Déconnexion
+        </button>
+      </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="app-topbar">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="lg:hidden font-bold text-white">CleanAir</span>
+          <span id="topbar-title" class="hidden lg:block text-sm font-medium text-white/90 truncate"></span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span id="topbar-user" class="hidden sm:block text-xs text-white/70 truncate max-w-[160px]"></span>
+          <button id="logout-btn-top" type="button" class="app-logout-btn" title="Déconnexion">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            <span class="hidden sm:inline">Déconnexion</span>
+          </button>
+        </div>
+      </header>
+      <main class="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
+        <slot />
+      </main>
+    </div>
+  </div>
+
+  <script>
+    import { getSession, clearSession, requireAuth } from '../lib/auth';
+
+    requireAuth();
+
+    const session = getSession();
+    const name = session?.userFullName || session?.userId || '';
+    const userEl = document.getElementById('sidebar-user');
+    const topUser = document.getElementById('topbar-user');
+    if (userEl && name) userEl.textContent = name;
+    if (topUser && name) topUser.textContent = name;
+
+    const titles: Record<string, string> = {
+      '/dashboard': 'Dashboard',
+      '/drafts': 'Interventions',
+    };
+    const path = window.location.pathname.replace(/\/$/, '') || '/';
+    const topTitle = document.getElementById('topbar-title');
+    if (topTitle) topTitle.textContent = titles[path] ?? 'CleanAir';
+
+    function logout() {
+      clearSession();
+      window.location.href = '/login';
+    }
+
+    document.getElementById('logout-btn')?.addEventListener('click', logout);
+    document.getElementById('logout-btn-top')?.addEventListener('click', logout);
+  </script>
+</BaseLayout>

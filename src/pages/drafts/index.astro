@@ -1,0 +1,535 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+<DashboardLayout title="Interventions — CleanAir" activeNav="drafts">
+  <div class="animate-fade-in space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Interventions</h1>
+        <p class="text-sm text-gray-500 mt-1">Consultez et envoyez les interventions vers X3</p>
+      </div>
+    </div>
+
+    <!-- Filters (compact) -->
+    <div class="section-card p-4">
+      <div class="filters-bar">
+        <div class="filter-field filter-field-search">
+          <label class="text-xs font-medium text-gray-500">Recherche</label>
+          <input id="filter-search" type="search" placeholder="ID, client..."
+            class="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-ca-primary focus:border-ca-primary outline-none bg-white" />
+        </div>
+        <div class="filter-field">
+          <label class="text-xs font-medium text-gray-500">Technicien</label>
+          <select id="filter-technicien"
+            class="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-ca-primary outline-none bg-white">
+            <option value="">Tous</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label class="text-xs font-medium text-gray-500">Statut</label>
+          <select id="filter-sync"
+            class="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-ca-primary outline-none bg-white">
+            <option value="">Tous</option>
+            <option value="draft">Non synchronisée</option>
+            <option value="synced">Synchronisé</option>
+            <option value="failed">Échec</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label class="text-xs font-medium text-gray-500">ID parc</label>
+          <input id="filter-parc-id" type="search" placeholder="Ex: PARC…"
+            class="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-ca-primary outline-none bg-white" />
+        </div>
+        <div class="filter-field">
+          <label class="text-xs font-medium text-gray-500">Enregistré du</label>
+          <input id="filter-date-from" type="date"
+            class="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-ca-primary outline-none bg-white" />
+        </div>
+        <div class="filter-field">
+          <label class="text-xs font-medium text-gray-500">Enregistré au</label>
+          <input id="filter-date-to" type="date"
+            class="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-ca-primary outline-none bg-white" />
+        </div>
+        <button id="filter-reset" type="button"
+          class="px-3 py-2 text-sm text-gray-500 hover:text-ca-primary font-medium whitespace-nowrap mb-0.5">
+          Réinitialiser
+        </button>
+      </div>
+      <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+        <div id="filter-chips" class="flex flex-wrap gap-2"></div>
+        <span id="result-count" class="text-sm text-gray-500 shrink-0"></span>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="drafts-table-wrap section-card p-0 overflow-hidden">
+      <div id="loading" class="p-12 text-center text-gray-500">
+        <div class="inline-block w-8 h-8 border-2 border-ca-primary border-t-transparent rounded-full animate-spin"></div>
+        <p class="mt-3 text-sm">Chargement des interventions...</p>
+      </div>
+      <div id="error-state" class="hidden p-12 text-center">
+        <p class="text-red-600 font-medium">Impossible de charger les interventions</p>
+        <p id="error-msg" class="text-sm text-gray-500 mt-1"></p>
+        <button id="retry-btn" class="mt-4 px-4 py-2 bg-ca-primary text-white rounded-lg text-sm">Réessayer</button>
+      </div>
+      <div id="empty-state" class="hidden p-12 text-center text-gray-500">
+        <p class="font-medium">Aucune intervention trouvée</p>
+        <p class="text-sm mt-1">Modifiez les filtres ou attendez de nouvelles interventions depuis l'application mobile.</p>
+      </div>
+      <div id="table-wrap" class="hidden overflow-x-auto">
+        <table class="drafts-table">
+          <colgroup>
+            <col class="col-id" />
+            <col class="col-client" />
+            <col class="col-tech" />
+            <col class="col-type" />
+            <col class="col-date" />
+            <col class="col-parcs" />
+            <col class="col-status" />
+            <col class="col-actions" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th><button type="button" class="th-sort" data-sort="id">N° <span class="sort-icon"></span></button></th>
+              <th><button type="button" class="th-sort" data-sort="client">Client <span class="sort-icon"></span></button></th>
+              <th><button type="button" class="th-sort" data-sort="technicien">Tech. <span class="sort-icon"></span></button></th>
+              <th><button type="button" class="th-sort" data-sort="type">Type <span class="sort-icon"></span></button></th>
+              <th><button type="button" class="th-sort" data-sort="planned">Planifiée <span class="sort-icon"></span></button></th>
+              <th><button type="button" class="th-sort" data-sort="parcs">Parcs <span class="sort-icon"></span></button></th>
+              <th><button type="button" class="th-sort" data-sort="status">Statut <span class="sort-icon"></span></button></th>
+              <th class="col-actions-sticky"><span class="th-sort-actions">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody id="drafts-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- X3 confirm modal -->
+  <div id="x3-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+      <h3 class="text-lg font-bold text-gray-900">Synchroniser vers X3 ?</h3>
+      <p class="text-sm text-gray-600 mt-2">Envoie l'intervention et le rapport vers Sage X3, comme sur l'application mobile.</p>
+      <div id="x3-summary" class="mt-4 p-3 bg-gray-50 rounded-lg text-sm space-y-1"></div>
+      <div id="x3-error" class="hidden mt-3 p-3 bg-red-50 text-red-700 rounded-lg text-sm"></div>
+      <div class="flex gap-3 mt-6">
+        <button id="x3-cancel" type="button" class="flex-1 py-2.5 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">Annuler</button>
+        <button id="x3-confirm" type="button" class="flex-1 py-2.5 bg-ca-primary text-white rounded-lg text-sm font-semibold hover:bg-ca-primary-dark disabled:opacity-50">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { listDrafts, listUsers, sendInterventionToX3 } from '../../lib/api';
+    import { applyClientFilters, normalizeDraft, formatPlannedDateHtml, formatX3Time } from '../../lib/utils';
+    import { renderSyncStatusBadge, SYNC_STATUS_ORDER } from '../../lib/sync-status';
+    import { renderRowActions } from '../../lib/table-actions';
+    import type { InterventionDraft, User } from '../../lib/types';
+
+    let allDrafts: InterventionDraft[] = [];
+    let users: User[] = [];
+    let debounceTimer: ReturnType<typeof setTimeout>;
+    const syncingIds = new Set<string>();
+    let pendingSyncId: string | null = null;
+
+    type SortKey = 'id' | 'client' | 'technicien' | 'type' | 'planned' | 'parcs' | 'status';
+    type SortDir = 'asc' | 'desc';
+    let sortKey: SortKey = 'planned';
+    let sortDir: SortDir = 'desc';
+
+    const STATUS_ORDER = SYNC_STATUS_ORDER;
+
+    const PARC_CHIPS_MAX = 1;
+    const expandedParcRows = new Set<string>();
+
+    function getFiltersFromUI() {
+      return {
+        search: (document.getElementById('filter-search') as HTMLInputElement).value.trim(),
+        user: (document.getElementById('filter-technicien') as HTMLSelectElement).value,
+        syncStatus: (document.getElementById('filter-sync') as HTMLSelectElement).value,
+        parcId: (document.getElementById('filter-parc-id') as HTMLInputElement).value.trim(),
+        dateFrom: (document.getElementById('filter-date-from') as HTMLInputElement).value,
+        dateTo: (document.getElementById('filter-date-to') as HTMLInputElement).value,
+      };
+    }
+
+    function syncUrlParams() {
+      const f = getFiltersFromUI();
+      const params = new URLSearchParams();
+      Object.entries(f).forEach(([k, v]) => { if (v) params.set(k, v); });
+      const qs = params.toString();
+      history.replaceState(null, '', qs ? `?${qs}` : window.location.pathname);
+    }
+
+    function loadFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const map: Record<string, string> = {
+        search: 'filter-search',
+        user: 'filter-technicien',
+        syncStatus: 'filter-sync',
+        parcId: 'filter-parc-id',
+        dateFrom: 'filter-date-from',
+        dateTo: 'filter-date-to',
+      };
+      Object.entries(map).forEach(([param, id]) => {
+        const val = params.get(param);
+        const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement;
+        if (el && val) el.value = val;
+      });
+    }
+
+    function updateStats(_filtered: InterventionDraft[]) {
+      /* stats on /dashboard */
+    }
+
+    function renderChips() {
+      const f = getFiltersFromUI();
+      const chips = document.getElementById('filter-chips')!;
+      const labels: Record<string, string> = {
+        search: 'Recherche', user: 'Technicien', syncStatus: 'Statut', parcId: 'Parc',
+        dateFrom: 'Du', dateTo: 'Au',
+      };
+      chips.innerHTML = '';
+      Object.entries(f).forEach(([key, val]) => {
+        if (!val) return;
+        let display = val;
+        if (key === 'user') {
+          const u = users.find((u) => u.id_x3 === val);
+          display = u?.fullname || val;
+        }
+        const chip = document.createElement('span');
+        chip.className = 'inline-flex items-center gap-1 px-2.5 py-1 bg-ca-primary/10 text-ca-primary rounded-full text-xs font-medium';
+        chip.innerHTML = `${labels[key] ?? key}: ${display} <button data-key="${key}" class="ml-1 hover:text-red-600">&times;</button>`;
+        chips.appendChild(chip);
+      });
+      chips.querySelectorAll('button').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const key = btn.getAttribute('data-key')!;
+          const map: Record<string, string> = {
+            search: 'filter-search', user: 'filter-technicien', syncStatus: 'filter-sync', parcId: 'filter-parc-id',
+            dateFrom: 'filter-date-from', dateTo: 'filter-date-to',
+          };
+          const el = document.getElementById(map[key]) as HTMLInputElement | HTMLSelectElement;
+          if (el) el.value = '';
+          render();
+        });
+      });
+    }
+
+    function getTechnicienName(draft: InterventionDraft): string {
+      const inv = draft.intervention;
+      return inv.technicienRealName || inv.technicienname || draft.user || '';
+    }
+
+    function getPlannedTimestamp(inv: InterventionDraft['intervention']): number {
+      const date = inv.date?.replace(/\D/g, '').slice(0, 8);
+      if (!date || date.length < 8) return 0;
+      const hour = formatX3Time(inv.debuteHour) || '00:00';
+      const iso = `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}T${hour}:00`;
+      const ts = new Date(iso).getTime();
+      return Number.isNaN(ts) ? 0 : ts;
+    }
+
+    function getParcCount(inv: InterventionDraft['intervention']): number {
+      return inv.parcs?.length ?? 0;
+    }
+
+    function renderParcChips(inv: InterventionDraft['intervention'], draftId: string): string {
+      const parcs = inv.parcs ?? [];
+      if (!parcs.length) return '<span class="text-gray-400">—</span>';
+
+      const expanded = expandedParcRows.has(draftId);
+      const visible = expanded ? parcs : parcs.slice(0, PARC_CHIPS_MAX);
+      const hidden = parcs.length - PARC_CHIPS_MAX;
+
+      let html = `<div class="table-parc-chips" data-parc-row="${draftId}">${visible.map((p) => {
+        const done = p.report?.reportStatus === 'Terminé';
+        const title = [p.designation, p.numserie].filter(Boolean).join(' · ');
+        return `<span class="table-parc-chip ${done ? 'table-parc-chip-done' : ''}" title="${title.replace(/"/g, '&quot;')}">${p.id}</span>`;
+      }).join('')}`;
+
+      if (!expanded && hidden > 0) {
+        html += `<button type="button" class="table-parc-more" data-parc-expand="${draftId}">+${hidden} voir plus</button>`;
+      } else if (expanded && parcs.length > PARC_CHIPS_MAX) {
+        html += `<button type="button" class="table-parc-more" data-parc-collapse="${draftId}">Réduire</button>`;
+      }
+      html += '</div>';
+      return html;
+    }
+
+    function compareDrafts(a: InterventionDraft, b: InterventionDraft): number {
+      const invA = a.intervention;
+      const invB = b.intervention;
+      let cmp = 0;
+
+      switch (sortKey) {
+        case 'id':
+          cmp = a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' });
+          break;
+        case 'client':
+          cmp = (invA.client ?? '').localeCompare(invB.client ?? '', 'fr', { sensitivity: 'base' });
+          break;
+        case 'technicien':
+          cmp = getTechnicienName(a).localeCompare(getTechnicienName(b), 'fr', { sensitivity: 'base' });
+          break;
+        case 'type':
+          cmp = (invA.type ?? '').localeCompare(invB.type ?? '', 'fr', { sensitivity: 'base' });
+          break;
+        case 'planned':
+          cmp = getPlannedTimestamp(invA) - getPlannedTimestamp(invB);
+          break;
+        case 'parcs':
+          cmp = getParcCount(invA) - getParcCount(invB);
+          break;
+        case 'status':
+          cmp = (STATUS_ORDER[a.syncStatus ?? 'draft'] ?? 0) - (STATUS_ORDER[b.syncStatus ?? 'draft'] ?? 0);
+          break;
+      }
+
+      return sortDir === 'asc' ? cmp : -cmp;
+    }
+
+    function updateSortHeaders() {
+      document.querySelectorAll<HTMLButtonElement>('.th-sort').forEach((btn) => {
+        const key = btn.getAttribute('data-sort') as SortKey;
+        const active = key === sortKey;
+        btn.classList.toggle('active', active);
+        if (active) btn.setAttribute('data-dir', sortDir);
+        else btn.removeAttribute('data-dir');
+      });
+    }
+
+    function setSort(key: SortKey) {
+      if (sortKey === key) {
+        sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        sortKey = key;
+        sortDir = key === 'planned' ? 'desc' : 'asc';
+      }
+      render();
+    }
+
+    function canSyncDraft(draft: InterventionDraft): boolean {
+      const status = draft.syncStatus ?? 'draft';
+      return draft.intervention.state !== 'oui' && status !== 'synced' && !syncingIds.has(draft.id);
+    }
+
+    function renderSyncButton(draft: InterventionDraft): string {
+      const status = draft.syncStatus ?? 'draft';
+      return renderRowActions(draft.id, {
+        syncing: syncingIds.has(draft.id),
+        synced: draft.intervention.state === 'oui' || status === 'synced',
+      });
+    }
+
+    function openX3Modal(draft: InterventionDraft) {
+      const inv = draft.intervention;
+      pendingSyncId = draft.id;
+      document.getElementById('x3-summary')!.innerHTML = `
+        <div><strong>Client:</strong> ${inv.client ?? '—'}</div>
+        <div><strong>ID:</strong> ${draft.id}</div>
+        <div><strong>Parcs:</strong> ${inv.parcs?.length ?? 0}</div>`;
+      document.getElementById('x3-error')!.classList.add('hidden');
+      document.getElementById('x3-modal')!.classList.remove('hidden');
+    }
+
+    function closeX3Modal() {
+      pendingSyncId = null;
+      document.getElementById('x3-modal')!.classList.add('hidden');
+    }
+
+    async function syncDraftToX3(id: string) {
+      const draft = allDrafts.find((d) => d.id === id);
+      if (!draft || !canSyncDraft(draft)) return;
+
+      syncingIds.add(id);
+      render();
+
+      try {
+        await sendInterventionToX3(draft.intervention);
+        draft.intervention.state = 'oui';
+        draft.syncStatus = 'synced';
+        draft.syncError = undefined;
+      } catch (e) {
+        draft.syncStatus = 'failed';
+        draft.syncError = e instanceof Error ? e.message : 'Erreur inconnue';
+        throw e;
+      } finally {
+        syncingIds.delete(id);
+        render();
+      }
+    }
+
+    function renderTable(filtered: InterventionDraft[]) {
+      const tbody = document.getElementById('drafts-tbody')!;
+      tbody.innerHTML = filtered.map((draft) => {
+        const inv = draft.intervention;
+        const status = draft.syncStatus ?? 'draft';
+        const tech = inv.technicienRealName || inv.technicienname || draft.user || '—';
+        const planTag = inv.isPlanified
+          ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold">PLAN</span>'
+          : '<span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-600 font-semibold">NP</span>';
+        return `<tr>
+          <td class="cell-id">
+            <div class="font-mono text-xs font-medium text-ca-primary cell-truncate" title="${draft.id}">${draft.id}</div>
+            <div class="mt-1">${planTag}</div>
+          </td>
+          <td class="cell-client">
+            <div class="font-semibold text-gray-900 cell-truncate" title="${inv.client ?? ''}">${inv.client ?? '—'}</div>
+          </td>
+          <td class="cell-tech cell-truncate text-gray-700" title="${tech}">${tech}</td>
+          <td class="cell-type"><span class="text-xs px-1.5 py-0.5 bg-gray-100 rounded-md font-medium">${inv.type ?? '—'}</span></td>
+          <td class="cell-date whitespace-nowrap">${formatPlannedDateHtml(inv)}</td>
+          <td class="cell-parcs">${renderParcChips(inv, draft.id)}</td>
+          <td class="cell-status">${renderSyncStatusBadge(status, { compact: true })}</td>
+          <td class="col-actions-sticky">${renderSyncButton(draft)}</td>
+        </tr>`;
+      }).join('');
+
+      document.getElementById('result-count')!.textContent = `${filtered.length} intervention${filtered.length !== 1 ? 's' : ''} trouvée${filtered.length !== 1 ? 's' : ''}`;
+    }
+
+    function render() {
+      const filters = getFiltersFromUI();
+      const filtered = applyClientFilters(allDrafts, filters).sort(compareDrafts);
+
+      updateStats(filtered);
+      renderChips();
+      syncUrlParams();
+      updateSortHeaders();
+
+      const loading = document.getElementById('loading')!;
+      const tableWrap = document.getElementById('table-wrap')!;
+      const empty = document.getElementById('empty-state')!;
+
+      loading.classList.add('hidden');
+      if (filtered.length === 0) {
+        tableWrap.classList.add('hidden');
+        empty.classList.remove('hidden');
+      } else {
+        empty.classList.add('hidden');
+        tableWrap.classList.remove('hidden');
+        renderTable(filtered);
+      }
+    }
+
+    async function load() {
+      const loading = document.getElementById('loading')!;
+      const error = document.getElementById('error-state')!;
+      const tableWrap = document.getElementById('table-wrap')!;
+      loading.classList.remove('hidden');
+      error.classList.add('hidden');
+      tableWrap.classList.add('hidden');
+
+      try {
+        const [drafts, userList] = await Promise.all([listDrafts(), listUsers().catch(() => [])]);
+        allDrafts = drafts.map(normalizeDraft);
+        users = userList;
+        const techSelect = document.getElementById('filter-technicien') as HTMLSelectElement;
+        techSelect.innerHTML = '<option value="">Tous</option>';
+        users.forEach((u) => {
+          const opt = document.createElement('option');
+          opt.value = u.id_x3 || u.id || '';
+          opt.textContent = u.fullname || u.username || opt.value;
+          techSelect.appendChild(opt);
+        });
+
+        loadFromUrl();
+        render();
+      } catch (err) {
+        loading.classList.add('hidden');
+        error.classList.remove('hidden');
+        document.getElementById('error-msg')!.textContent = err instanceof Error ? err.message : 'Erreur réseau';
+      }
+    }
+
+    ['filter-technicien', 'filter-sync', 'filter-date-from', 'filter-date-to'].forEach((id) => {
+      document.getElementById(id)?.addEventListener('change', render);
+    });
+
+    document.getElementById('filter-parc-id')?.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(render, 300);
+    });
+
+    document.getElementById('filter-search')?.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(render, 300);
+    });
+
+    document.getElementById('filter-reset')?.addEventListener('click', () => {
+      ['filter-search', 'filter-technicien', 'filter-sync', 'filter-parc-id', 'filter-date-from', 'filter-date-to'].forEach((id) => {
+        const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement;
+        if (el) el.value = '';
+      });
+      render();
+    });
+
+    document.getElementById('retry-btn')?.addEventListener('click', load);
+
+    document.querySelector('.drafts-table thead')?.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest('.th-sort') as HTMLButtonElement | null;
+      if (!btn) return;
+      const key = btn.getAttribute('data-sort') as SortKey;
+      if (key) setSort(key);
+    });
+
+    document.getElementById('drafts-tbody')?.addEventListener('click', (e) => {
+      const expandBtn = (e.target as HTMLElement).closest('[data-parc-expand]') as HTMLElement | null;
+      if (expandBtn) {
+        const id = expandBtn.getAttribute('data-parc-expand')!;
+        expandedParcRows.add(id);
+        render();
+        return;
+      }
+      const collapseBtn = (e.target as HTMLElement).closest('[data-parc-collapse]') as HTMLElement | null;
+      if (collapseBtn) {
+        expandedParcRows.delete(collapseBtn.getAttribute('data-parc-collapse')!);
+        render();
+        return;
+      }
+
+      const btn = (e.target as HTMLElement).closest('.action-btn-sync.btn-sync-x3') as HTMLButtonElement | null;
+      if (!btn || btn.disabled) return;
+      const id = btn.getAttribute('data-id');
+      if (!id) return;
+      const draft = allDrafts.find((d) => d.id === id);
+      if (draft) openX3Modal(draft);
+    });
+
+    document.getElementById('x3-cancel')?.addEventListener('click', closeX3Modal);
+    document.getElementById('x3-modal')?.addEventListener('click', (e) => {
+      if (e.target === document.getElementById('x3-modal')) closeX3Modal();
+    });
+
+    document.getElementById('x3-confirm')?.addEventListener('click', async () => {
+      if (!pendingSyncId) return;
+      const id = pendingSyncId;
+      const confirmBtn = document.getElementById('x3-confirm') as HTMLButtonElement;
+      const errorEl = document.getElementById('x3-error')!;
+      confirmBtn.disabled = true;
+      errorEl.classList.add('hidden');
+
+      try {
+        closeX3Modal();
+        await syncDraftToX3(id);
+      } catch (e) {
+        const draft = allDrafts.find((d) => d.id === id);
+        if (draft) openX3Modal(draft);
+        errorEl.textContent = e instanceof Error ? e.message : 'Erreur lors de l\'envoi';
+        errorEl.classList.remove('hidden');
+      } finally {
+        confirmBtn.disabled = false;
+      }
+    });
+
+    load();
+
+    setInterval(() => {
+      if (allDrafts.some((d) => ['pending', 'processing'].includes(d.syncStatus ?? ''))) {
+        load();
+      }
+    }, 30000);
+  </script>
+</DashboardLayout>

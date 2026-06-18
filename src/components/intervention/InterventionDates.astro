@@ -1,0 +1,27 @@
+---
+import FieldGrid from '../FieldGrid.astro';
+import type { Intervention } from '../../lib/types';
+
+interface Props { intervention: Intervention }
+const { intervention: inv } = Astro.props;
+
+const fields = [
+  { label: 'Date planifiée', value: inv.date },
+  { label: 'Date fin planifiée', value: inv.enddate },
+  { label: 'Date calendrier', value: inv.calendardate },
+  { label: 'Heure début planifiée', value: inv.debuteHour },
+  { label: 'Heure fin planifiée', value: inv.finishHour },
+  { label: 'Durée planifiée', value: inv.duration },
+  { label: 'Date début formatée', value: inv.formattedstartDate },
+  { label: 'Date fin formatée', value: inv.formattedEndDate },
+  { label: 'Durée formatée', value: inv.formattedDurationDate },
+  { label: 'Début réel (date)', value: inv.realstartdate, mono: true },
+  { label: 'Début réel (heure)', value: inv.realstarttime },
+  { label: 'Fin réelle (date)', value: inv.realenddate, mono: true },
+  { label: 'Fin réelle (heure)', value: inv.realendtime },
+  { label: 'Départ réel (date)', value: inv.realdepartureDate, mono: true },
+  { label: 'Départ réel (heure)', value: inv.realdepartureTime },
+  { label: 'Durée réelle', value: inv.realduration },
+];
+---
+<FieldGrid fields={fields} />

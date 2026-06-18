@@ -1,0 +1,38 @@
+---
+import type { Intervention } from '../../lib/types';
+
+interface Props { intervention: Intervention }
+const { intervention: inv } = Astro.props;
+---
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div>
+    <div class="field-label mb-2">Signature technicien globale</div>
+    {inv.globalTechnicienSignature ? (
+      <div class="p-4 bg-white border rounded-lg" set:html={inv.globalTechnicienSignature} />
+    ) : (
+      <div class="text-sm text-gray-400">—</div>
+    )}
+  </div>
+  <div>
+    <div class="field-label mb-2">Signature client globale</div>
+    {inv.globalClientSignature ? (
+      <div class="p-4 bg-white border rounded-lg" set:html={inv.globalClientSignature} />
+    ) : (
+      <div class="text-sm text-gray-400">—</div>
+    )}
+  </div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+  <div>
+    <div class="field-label">Note client</div>
+    <div class="field-value">{inv.globalClientRating ? `${inv.globalClientRating}/5` : '—'}</div>
+  </div>
+  <div class="md:col-span-2">
+    <div class="field-label">Commentaire client</div>
+    <div class="field-value">{inv.globalClientComment || '—'}</div>
+  </div>
+  <div>
+    <div class="field-label">Signature client valide</div>
+    <div class="field-value">{inv.globalClientSignatureValid || '—'}</div>
+  </div>
+</div>

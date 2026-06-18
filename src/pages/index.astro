@@ -1,0 +1,15 @@
+---
+// Redirect handled client-side for static build
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout>
+  <script>
+    const session = localStorage.getItem('cleanair_session');
+    if (session) {
+      window.location.href = '/dashboard';
+    } else {
+      window.location.href = '/login';
+    }
+  </script>
+  <p class="p-8 text-center text-gray-500">Redirection...</p>
+</BaseLayout>

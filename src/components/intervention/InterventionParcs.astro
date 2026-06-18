@@ -1,0 +1,125 @@
+---
+import FieldGrid from '../FieldGrid.astro';
+import ReportPanel from './ReportPanel.astro';
+import type { Parc, Intervention } from '../../lib/types';
+
+interface Props {
+  parcs: Parc[];
+  intervention: Intervention;
+}
+const { parcs, intervention } = Astro.props;
+---
+
+<div class="space-y-6">
+  {parcs.map((parc, index) => {
+    const status = parc.report?.reportStatus ?? 'Brouillon';
+    const borderClass = status === 'Terminé' ? 'parc-card-border-done' : status === 'Brouillon' ? 'parc-card-border-draft' : 'parc-card-border-other';
+
+    return (
+      <div class:list={['section-card overflow-hidden', borderClass]} data-parc-id={parc.id}>
+        <div class="p-4 bg-gray-50 border-b flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <span class="text-xs font-bold text-ca-primary">PARC {index + 1}</span>
+            <h3 class="font-semibold text-gray-900">{parc.designation}</h3>
+            <p class="text-xs text-gray-500 font-mono">{parc.numserie} · {parc.marque_designation}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class:list={['text-xs px-2.5 py-1 rounded-full font-semibold', status === 'Terminé' ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-700']}>
+              {status}
+            </span>
+            <button
+              type="button"
+              class="pdf-btn px-3 py-1.5 bg-ca-primary text-white text-xs font-semibold rounded-lg hover:bg-ca-primary-dark transition"
+              data-parc-id={parc.id}
+            >
+              Générer PDF
+            </button>
+          </div>
+        </div>
+
+        <div class="p-4">
+          <details open class="mb-4">
+            <summary class="text-sm font-semibold text-gray-700 cursor-pointer mb-3">Identité équipement</summary>
+            <FieldGrid fields={[
+              { label: 'ID parc', value: parc.id, mono: true },
+              { label: 'ID intervention', value: parc.interventionId, mono: true },
+              { label: 'Désignation', value: parc.designation },
+              { label: 'N° série', value: parc.numserie, mono: true },
+              { label: 'Article', value: parc.article },
+              { label: 'Code marque', value: parc.marque, mono: true },
+              { label: 'Marque', value: parc.marque_designation },
+              { label: 'Localisation', value: parc.localisation },
+              { label: 'Adresse site', value: parc.addressSite },
+              { label: 'Désignation site', value: parc.designationSite },
+              { label: 'Type contrat', value: parc.typeContrat },
+              { label: 'Couverture contrat', value: parc.couvertureParContrat },
+              { label: 'Parc forcé', value: parc.forced },
+              { label: 'État rapport parc', value: parc.reportState },
+            ]} />
+          </details>
+
+          {(parc.articles?.length ?? 0) > 0 && (
+            <details class="mb-4">
+              <summary class="text-sm font-semibold text-gray-700 cursor-pointer mb-3">Articles ({parc.articles!.length})</summary>
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+                    <tr><th class="px-2 py-1">ID</th><th class="px-2 py-1">Désignation</th><th class="px-2 py-1">Qté</th><th class="px-2 py-1">Réf.</th><th class="px-2 py-1">Firmware</th></tr>
+                  </thead>
+                  <tbody class="divide-y">
+                    {parc.articles!.map((a) => (
+                      <tr><td class="px-2 py-1 font-mono text-xs">{a.articleid}</td><td class="px-2 py-1">{a.designation}</td><td class="px-2 py-1">{a.quantity}</td><td class="px-2 py-1">{a.reference}</td><td class="px-2 py-1">{a.firmware}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          )}
+
+          {(parc.parcHistoryList?.length ?? 0) > 0 && (
+            <details class="mb-4">
+              <summary class="text-sm font-semibold text-gray-700 cursor-pointer mb-3">Historique ({parc.parcHistoryList!.length})</summary>
+              {parc.parcHistoryList!.map((h) => (
+                <div class="p-3 bg-gray-50 rounded-lg mb-2 text-sm">
+                  <div class="font-medium">{h.date} — {h.technicien}</div>
+                  <div class="text-gray-600 mt-1">{h.commentaire}</div>
+                </div>
+              ))}
+            </details>
+          )}
+
+          <details open>
+            <summary class="text-sm font-semibold text-gray-700 cursor-pointer mb-3">Rapport d'intervention</summary>
+            <div class="border-b flex gap-1 mb-4" role="tablist">
+              <button type="button" class="report-tab px-4 py-2 text-sm font-medium border-b-2 border-ca-primary text-ca-primary" data-parc={parc.id} data-tab="final">Rapport final</button>
+              <button type="button" class="report-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-parc={parc.id} data-tab="draft">Brouillon</button>
+            </div>
+            <div class="report-content-final" data-parc={parc.id}>
+              <ReportPanel report={parc.report ?? {}} title="final" parcId={parc.id} />
+            </div>
+            <div class="report-content-draft hidden" data-parc={parc.id}>
+              <ReportPanel report={parc.reportDraft ?? {}} title="draft" parcId={parc.id} />
+            </div>
+          </details>
+        </div>
+      </div>
+    );
+  })}
+</div>
+
+<script>
+  document.querySelectorAll('.report-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const parcId = tab.getAttribute('data-parc');
+      const which = tab.getAttribute('data-tab');
+      document.querySelectorAll(`.report-tab[data-parc="${parcId}"]`).forEach((t) => {
+        t.classList.toggle('border-ca-primary', t === tab);
+        t.classList.toggle('text-ca-primary', t === tab);
+        t.classList.toggle('border-transparent', t !== tab);
+        t.classList.toggle('text-gray-500', t !== tab);
+      });
+      document.querySelector(`.report-content-final[data-parc="${parcId}"]`)?.classList.toggle('hidden', which !== 'final');
+      document.querySelector(`.report-content-draft[data-parc="${parcId}"]`)?.classList.toggle('hidden', which !== 'draft');
+    });
+  });
+</script>

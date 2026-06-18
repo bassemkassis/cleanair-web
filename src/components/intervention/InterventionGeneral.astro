@@ -1,0 +1,26 @@
+---
+import FieldGrid from '../FieldGrid.astro';
+import type { Intervention } from '../../lib/types';
+
+interface Props { intervention: Intervention }
+const { intervention: inv } = Astro.props;
+
+const fields = [
+  { label: 'ID intervention', value: inv.interventionId, mono: true },
+  { label: 'ID NP', value: inv.npid, mono: true },
+  { label: 'Description', value: inv.description, multiline: true },
+  { label: 'Type', value: inv.type },
+  { label: 'Type ID', value: inv.typeId, mono: true },
+  { label: 'État', value: inv.state },
+  { label: 'Statut mobile', value: inv.mobilestatus },
+  { label: 'Planifiée', value: inv.isPlanified },
+  { label: 'Enregistrée localement', value: inv.isSaved },
+  { label: 'Urgence', value: inv.urgency },
+  { label: 'Satisfaction', value: inv.satisfaction },
+  { label: 'ID utilisateur', value: inv.user, mono: true },
+  { label: 'Bon de livraison', value: inv.BL },
+  { label: 'Articles BL', value: inv.BL_Article?.join(', ') },
+  { label: 'IDs parcs référencés', value: inv.idParcArray?.join(', '), mono: true },
+];
+---
+<FieldGrid fields={fields} />

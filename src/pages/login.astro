@@ -1,0 +1,87 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Connexion — CleanAir">
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-ca-primary-dark via-ca-primary to-blue-600 p-4">
+    <div class="w-full max-w-md section-card p-8 animate-fade-in">
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-ca-primary text-white text-xl font-bold mb-4">CA</div>
+        <h1 class="text-2xl font-bold text-gray-900">CleanAir Backoffice</h1>
+        <p class="text-sm text-gray-500 mt-1">Gestion des interventions SAV</p>
+      </div>
+
+      <form id="login-form" class="space-y-5">
+        <div>
+          <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Identifiant</label>
+          <input
+            id="username"
+            name="username"
+            type="text"
+            required
+            autocomplete="username"
+            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ca-primary focus:border-ca-primary outline-none transition"
+            placeholder="Nom d'utilisateur"
+          />
+        </div>
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            autocomplete="current-password"
+            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ca-primary focus:border-ca-primary outline-none transition"
+            placeholder="••••••••"
+          />
+        </div>
+        <div id="login-error" class="hidden text-sm text-red-600 bg-red-50 px-4 py-3 rounded-lg"></div>
+        <button
+          type="submit"
+          id="login-btn"
+          class="w-full py-3 bg-ca-primary hover:bg-ca-primary-dark text-white font-semibold rounded-lg transition-colors disabled:opacity-50"
+        >
+          Connexion
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    import { login } from '../lib/api';
+    import { getSession, setSession } from '../lib/auth';
+
+    if (getSession()?.isLoggedIn) {
+      window.location.href = '/dashboard';
+    }
+
+    const form = document.getElementById('login-form') as HTMLFormElement;
+    const errorEl = document.getElementById('login-error') as HTMLElement;
+    const btn = document.getElementById('login-btn') as HTMLButtonElement;
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorEl.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = 'Connexion...';
+
+      const username = (document.getElementById('username') as HTMLInputElement).value;
+      const password = (document.getElementById('password') as HTMLInputElement).value;
+
+      try {
+        const user = await login(username, password);
+        setSession({
+          isLoggedIn: true,
+          userId: user.id_x3 || user.id || '',
+          userFullName: user.fullname || username,
+        });
+        window.location.href = '/dashboard';
+      } catch (err) {
+        errorEl.textContent = 'Identifiant ou mot de passe invalide';
+        errorEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Connexion';
+      }
+    });
+  </script>
+</BaseLayout>

@@ -1,0 +1,18 @@
+---
+import FieldGrid from '../FieldGrid.astro';
+import type { Intervention } from '../../lib/types';
+
+interface Props { intervention: Intervention }
+const { intervention: inv } = Astro.props;
+
+const fields = [
+  { label: 'Client', value: inv.client },
+  { label: 'ID client', value: inv.id_client, mono: true },
+  { label: 'Adresse', value: inv.address },
+  { label: 'Code adresse', value: inv.codeAdress, mono: true },
+  { label: 'Téléphone', value: inv.tel },
+  { label: 'Email', value: inv.email },
+  { label: 'Parc (texte)', value: inv.parc },
+];
+---
+<FieldGrid fields={fields} />

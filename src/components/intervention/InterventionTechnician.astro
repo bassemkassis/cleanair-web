@@ -1,0 +1,20 @@
+---
+import FieldGrid from '../FieldGrid.astro';
+import type { Intervention } from '../../lib/types';
+
+interface Props { intervention: Intervention }
+const { intervention: inv } = Astro.props;
+
+const lat = inv.locationLatitude;
+const lng = inv.locationLongitude;
+const mapUrl = lat && lng ? `https://www.google.com/maps?q=${lat},${lng}` : undefined;
+
+const fields = [
+  { label: 'Code technicien (X3)', value: inv.technicienname, mono: true },
+  { label: 'Nom technicien', value: inv.technicienRealName },
+  { label: 'Latitude', value: lat, mono: true },
+  { label: 'Longitude', value: lng, mono: true },
+  ...(mapUrl ? [{ label: 'Carte', value: 'Ouvrir dans Google Maps', href: mapUrl }] : []),
+];
+---
+<FieldGrid fields={fields} />

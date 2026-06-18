@@ -1,0 +1,132 @@
+---
+import FieldGrid from '../FieldGrid.astro';
+import type { Report } from '../../lib/types';
+
+interface Props {
+  report: Report;
+  title: string;
+  parcId: string;
+}
+const { report, title, parcId } = Astro.props;
+
+const questions = report.questions ?? [];
+const questionnaire = questions.filter((q) => q.type === 'question' || !q.type);
+const checklist = questions.filter((q) => q.type === 'checkbox');
+
+const fields = [
+  { label: 'Rapport intervention', value: report.rapportIntervention, multiline: true },
+  { label: 'Intitulé', value: report.intitule },
+  { label: 'Texte intervention', value: report.interventionText, mono: true },
+  { label: 'Date', value: report.date },
+  { label: 'Technicien', value: report.technicien },
+  { label: 'Client', value: report.client },
+  { label: 'Site', value: report.site },
+  { label: 'ID parc', value: report.parcId ?? parcId, mono: true },
+  { label: 'N° série', value: report.serie, mono: true },
+  { label: 'Marque', value: report.marque },
+  { label: 'Modèle', value: report.model },
+  { label: 'Localisation', value: report.localisation },
+  { label: 'Référence client', value: report.referenceClient },
+  { label: 'Commentaire technicien', value: report.commentaireTechnicien, multiline: true },
+  { label: 'Commentaire client', value: report.commentaireClient, multiline: true },
+  { label: 'Équipement opérationnel', value: report.equipement_operationnel },
+  { label: 'Statut rapport', value: report.reportStatus },
+  { label: 'Note client', value: report.clientRating ? `${report.clientRating}/5` : null },
+  { label: 'Signature client valide', value: report.isValidClientSingature },
+];
+---
+
+<div data-report-panel={title}>
+  <FieldGrid fields={fields} />
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+    <div>
+      <div class="field-label mb-2">Signature technicien</div>
+      {report.technicienSignature ? (
+        <div class="p-4 bg-white border rounded-lg min-h-[80px]" set:html={report.technicienSignature} />
+      ) : report.technicienSignatureBase64 ? (
+        <img src={report.technicienSignatureBase64.startsWith('data:') ? report.technicienSignatureBase64 : `data:image/png;base64,${report.technicienSignatureBase64}`} alt="Signature technicien" class="max-h-24 border rounded" />
+      ) : <span class="text-gray-400 text-sm">—</span>}
+    </div>
+    <div>
+      <div class="field-label mb-2">Signature client</div>
+      {report.clientSignature ? (
+        <div class="p-4 bg-white border rounded-lg min-h-[80px]" set:html={report.clientSignature} />
+      ) : report.clientSignatureBase64 ? (
+        <img src={report.clientSignatureBase64.startsWith('data:') ? report.clientSignatureBase64 : `data:image/png;base64,${report.clientSignatureBase64}`} alt="Signature client" class="max-h-24 border rounded" />
+      ) : <span class="text-gray-400 text-sm">—</span>}
+    </div>
+  </div>
+
+  {questionnaire.length > 0 && (
+    <div class="mt-6">
+      <h5 class="text-sm font-semibold text-gray-700 mb-2">Questionnaire</h5>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+            <tr><th class="px-3 py-2">#</th><th class="px-3 py-2 text-left">Question</th><th class="px-3 py-2 text-left">Réponse</th><th class="px-3 py-2">Unité</th><th class="px-3 py-2">Oblig.</th></tr>
+          </thead>
+          <tbody class="divide-y">
+            {questionnaire.map((q) => (
+              <tr class:list={[q.required === 'Oui' && !q.reponse && 'bg-red-50']}>
+                <td class="px-3 py-2">{q.pos}</td>
+                <td class="px-3 py-2">{q.intitule}</td>
+                <td class="px-3 py-2">{q.reponse ?? '—'}</td>
+                <td class="px-3 py-2">{q.unite}</td>
+                <td class="px-3 py-2">{q.required}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )}
+
+  {checklist.length > 0 && (
+    <div class="mt-6">
+      <h5 class="text-sm font-semibold text-gray-700 mb-2">CheckList</h5>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+            <tr><th class="px-3 py-2">#</th><th class="px-3 py-2 text-left">Question</th><th class="px-3 py-2 text-left">Réponse</th><th class="px-3 py-2">Oblig.</th></tr>
+          </thead>
+          <tbody class="divide-y">
+            {checklist.map((q) => (
+              <tr class:list={[q.required === 'Oui' && !q.reponse && 'bg-red-50']}>
+                <td class="px-3 py-2">{q.pos}</td>
+                <td class="px-3 py-2">{q.intitule}</td>
+                <td class="px-3 py-2">{q.reponse ?? '—'}</td>
+                <td class="px-3 py-2">{q.required}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )}
+
+  {(report.images?.length ?? 0) > 0 && (
+    <div class="mt-6">
+      <h5 class="text-sm font-semibold text-gray-700 mb-2">Photos</h5>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {report.images!.map((img) => (
+          <img
+            src={img.startsWith('data:') ? img : `data:image/jpeg;base64,${img}`}
+            alt="Photo rapport"
+            class="w-full h-24 object-cover rounded-lg border cursor-pointer hover:opacity-90"
+            loading="lazy"
+          />
+        ))}
+      </div>
+    </div>
+  )}
+
+  {report.imagespath?.length ? (
+    <div class="mt-4">
+      <div class="field-label">Chemins photos</div>
+      <ul class="text-sm text-gray-600 list-disc pl-5 mt-1">
+        {report.imagespath.map((p) => <li>{p}</li>)}
+      </ul>
+    </div>
+  ) : null}
+</div>

@@ -1,0 +1,193 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+---
+<DashboardLayout title="Dashboard — CleanAir" activeNav="dashboard">
+  <div class="animate-fade-in space-y-6">
+    <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p class="text-sm text-gray-500 mt-1">Vue d'ensemble des interventions et équipements SAV</p>
+      </div>
+      <a href="/drafts" class="text-sm text-ca-primary hover:underline font-medium shrink-0">Voir les interventions →</a>
+    </div>
+
+    <div id="dash-loading" class="section-card p-12 text-center text-gray-500">
+      <div class="inline-block w-8 h-8 border-2 border-ca-primary border-t-transparent rounded-full animate-spin"></div>
+      <p class="mt-3 text-sm">Chargement…</p>
+    </div>
+
+    <div id="dash-error" class="hidden section-card p-12 text-center">
+      <p class="text-red-600 font-medium">Impossible de charger les données</p>
+      <p id="dash-error-msg" class="text-sm text-gray-500 mt-1"></p>
+      <button id="dash-retry" class="mt-4 px-4 py-2 bg-ca-primary text-white rounded-lg text-sm">Réessayer</button>
+    </div>
+
+    <div id="dash-content" class="hidden space-y-6">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="dash-stat-card dash-stat-primary">
+          <div class="dash-stat-label">Interventions</div>
+          <div id="stat-total" class="dash-stat-value">—</div>
+        </div>
+        <div class="dash-stat-card">
+          <div class="dash-stat-label">Équipements</div>
+          <div id="stat-parcs" class="dash-stat-value">—</div>
+        </div>
+        <div class="dash-stat-card">
+          <div class="dash-stat-label">Rapports terminés</div>
+          <div id="stat-reports" class="dash-stat-value text-green-600">—</div>
+          <div id="stat-reports-bar" class="dash-mini-bar mt-2"><div class="dash-mini-fill"></div></div>
+        </div>
+        <div class="dash-stat-card">
+          <div class="dash-stat-label">Synchronisés</div>
+          <div id="stat-synced" class="dash-stat-value text-green-600">—</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="dash-stat-card">
+          <div class="dash-stat-label flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm8.707 2.707a1 1 0 00-1.414-1.414L9 8.586V6a1 1 0 112 0v3a1 1 0 01-.293.707l-2 2a1 1 0 11-1.414-1.414L9.586 9H7a1 1 0 110-2h2.586l2.121-2.121z" clip-rule="evenodd"/></svg>
+            Non synchronisées
+          </div>
+          <div id="stat-drafts" class="dash-stat-value text-slate-700">—</div>
+        </div>
+        <div class="dash-stat-card">
+          <div class="dash-stat-label">Échecs sync</div>
+          <div id="stat-failed" class="dash-stat-value text-red-600">—</div>
+        </div>
+        <div class="dash-stat-card">
+          <div class="dash-stat-label">Planifiées</div>
+          <div id="stat-plan" class="dash-stat-value text-blue-600">—</div>
+        </div>
+        <div class="dash-stat-card">
+          <div class="dash-stat-label">Non planifiées</div>
+          <div id="stat-np" class="dash-stat-value text-gray-600">—</div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-6">
+        <div class="section-card p-5 lg:col-span-1">
+          <h2 class="text-sm font-bold text-gray-900 uppercase tracking-wide mb-4">Statut rapports</h2>
+          <div id="stat-by-report" class="space-y-2"></div>
+        </div>
+        <div class="section-card p-5">
+          <h2 class="text-sm font-bold text-gray-900 uppercase tracking-wide mb-4">Par technicien</h2>
+          <div id="stat-by-tech" class="space-y-2"></div>
+        </div>
+        <div class="section-card p-5">
+          <h2 class="text-sm font-bold text-gray-900 uppercase tracking-wide mb-4">Par type</h2>
+          <div id="stat-by-type" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <div class="section-card p-0 overflow-hidden">
+        <div class="p-5 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-sm font-bold text-gray-900 uppercase tracking-wide">Équipements</h2>
+            <p id="etat-count" class="text-xs text-gray-500 mt-1"></p>
+          </div>
+        </div>
+        <div id="etat-table-wrap" class="overflow-x-auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { listDrafts } from '../lib/api';
+    import { normalizeDraft } from '../lib/utils';
+    import { computeDashboardStats } from '../lib/stats';
+    import type { EtatParcRow } from '../lib/date-filters';
+
+    let allDrafts: ReturnType<typeof normalizeDraft>[] = [];
+
+    function renderBarList(containerId: string, items: { label: string; count: number }[], max: number) {
+      const el = document.getElementById(containerId)!;
+      if (!items.length) {
+        el.innerHTML = '<p class="text-sm text-gray-400">Aucune donnée</p>';
+        return;
+      }
+      el.innerHTML = items.slice(0, 8).map((item) => {
+        const pct = max > 0 ? Math.round((item.count / max) * 100) : 0;
+        return `<div class="dash-bar-row">
+          <div class="dash-bar-label" title="${item.label}">${item.label}</div>
+          <div class="dash-bar-track"><div class="dash-bar-fill" style="width:${pct}%"></div></div>
+          <div class="dash-bar-count">${item.count}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderEtatTable(rows: EtatParcRow[]) {
+      const wrap = document.getElementById('etat-table-wrap')!;
+      document.getElementById('etat-count')!.textContent = `${rows.length} équipement${rows.length !== 1 ? 's' : ''}`;
+      if (!rows.length) {
+        wrap.innerHTML = '<p class="p-8 text-center text-sm text-gray-400">Aucun équipement</p>';
+        return;
+      }
+      wrap.innerHTML = `<table class="etat-table">
+        <thead><tr>
+          <th>ID Parc</th><th>Équipement</th><th>Client</th><th>Intervention</th><th>Technicien</th><th>Statut rapport</th><th>Opérationnel</th><th></th>
+        </tr></thead>
+        <tbody>${rows.map((r) => `
+          <tr>
+            <td><span class="table-parc-chip font-mono">${r.parcId}</span></td>
+            <td>
+              <div class="font-medium text-sm">${r.designation ?? '—'}</div>
+              <div class="text-xs text-gray-500 font-mono">${r.numserie ?? ''}</div>
+            </td>
+            <td>${r.client ?? '—'}</td>
+            <td class="font-mono text-xs">${r.interventionId}</td>
+            <td class="text-sm">${r.technicien}</td>
+            <td><span class="etat-status ${r.done ? 'etat-status-done' : 'etat-status-pending'}">${r.reportStatus}</span></td>
+            <td>${r.operational === null ? '—' : r.operational ? '<span class="text-green-600 font-medium">Oui</span>' : '<span class="text-red-600 font-medium">Non</span>'}</td>
+            <td><a href="/drafts/detail?id=${encodeURIComponent(r.draftId)}" class="text-ca-primary text-sm font-medium hover:underline">Voir</a></td>
+          </tr>`).join('')}</tbody>
+      </table>`;
+    }
+
+    function renderDashboard() {
+      const s = computeDashboardStats(allDrafts);
+      const etat = s.etatDesLieux;
+
+      document.getElementById('stat-total')!.textContent = String(s.total);
+      document.getElementById('stat-drafts')!.textContent = String(s.drafts);
+      document.getElementById('stat-synced')!.textContent = String(s.synced);
+      document.getElementById('stat-failed')!.textContent = String(s.failed);
+      document.getElementById('stat-parcs')!.textContent = String(s.totalParcs);
+      document.getElementById('stat-reports')!.textContent = `${s.reportsDone} / ${s.reportsTotal}`;
+      document.getElementById('stat-plan')!.textContent = String(s.planified);
+      document.getElementById('stat-np')!.textContent = String(s.nonPlanified);
+
+      const reportPct = s.reportsTotal > 0 ? (s.reportsDone / s.reportsTotal) * 100 : 0;
+      const fill = document.querySelector('#stat-reports-bar .dash-mini-fill') as HTMLElement;
+      if (fill) fill.style.width = `${reportPct}%`;
+
+      const maxReport = s.byReportStatus[0]?.count ?? 1;
+      const maxTech = s.byTechnicien[0]?.count ?? 1;
+      const maxType = s.byType[0]?.count ?? 1;
+      renderBarList('stat-by-report', s.byReportStatus.map((r) => ({ label: r.status, count: r.count })), maxReport);
+      renderBarList('stat-by-tech', s.byTechnicien.map((t) => ({ label: t.name, count: t.count })), maxTech);
+      renderBarList('stat-by-type', s.byType.map((t) => ({ label: t.type, count: t.count })), maxType);
+      renderEtatTable(etat);
+    }
+
+    async function load() {
+      document.getElementById('dash-loading')!.classList.remove('hidden');
+      document.getElementById('dash-error')!.classList.add('hidden');
+      document.getElementById('dash-content')!.classList.add('hidden');
+
+      try {
+        allDrafts = (await listDrafts()).map(normalizeDraft);
+        document.getElementById('dash-loading')!.classList.add('hidden');
+        document.getElementById('dash-content')!.classList.remove('hidden');
+        renderDashboard();
+      } catch (e) {
+        document.getElementById('dash-loading')!.classList.add('hidden');
+        document.getElementById('dash-error')!.classList.remove('hidden');
+        document.getElementById('dash-error-msg')!.textContent = e instanceof Error ? e.message : 'Erreur réseau';
+      }
+    }
+
+    document.getElementById('dash-retry')?.addEventListener('click', load);
+    load();
+  </script>
+</DashboardLayout>

@@ -1,0 +1,21 @@
+---
+interface Props {
+  status?: string;
+  size?: 'sm' | 'md';
+}
+const { status = 'draft', size = 'md' } = Astro.props;
+
+const config: Record<string, { label: string; class: string }> = {
+  draft: { label: 'Brouillon', class: 'bg-slate-100 text-slate-700' },
+  pending: { label: 'En attente', class: 'bg-amber-100 text-amber-800' },
+  processing: { label: 'En cours', class: 'bg-blue-100 text-blue-800 animate-pulse-soft' },
+  synced: { label: 'Synchronisé', class: 'bg-green-100 text-green-800' },
+  failed: { label: 'Échec', class: 'bg-red-100 text-red-800' },
+};
+
+const c = config[status] ?? config.draft;
+const sizeClass = size === 'sm' ? 'text-xs px-2 py-0.5' : 'text-xs px-2.5 py-1';
+---
+<span class:list={['inline-flex items-center rounded-full font-semibold', c.class, sizeClass]}>
+  {c.label}
+</span>
