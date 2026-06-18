@@ -40,11 +40,10 @@ Requires [PM2](https://pm2.keymetrics.io/) installed globally: `npm install -g p
 
 ```bash
 cp .env.example .env   # set PUBLIC_API_URL, then:
-npm install
 npm run deploy
 ```
 
-This builds the site and starts (or restarts) the app on **http://localhost:6000**.
+`deploy` runs `npm install`, builds the site, and starts (or restarts) PM2 on **http://localhost:6000**.
 
 Other commands:
 
