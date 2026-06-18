@@ -34,7 +34,9 @@ npm run build
 npm run preview
 ```
 
-## Production (PM2, port 6000)
+## Production (PM2, port 7603)
+
+> **Note:** Port 6000 is blocked by Chrome (`ERR_UNSAFE_PORT`). Use a non-blocked port such as **7603**.
 
 Requires [PM2](https://pm2.keymetrics.io/) installed globally: `npm install -g pm2`
 
@@ -43,7 +45,7 @@ cp .env.example .env   # set PUBLIC_API_URL, then:
 npm run deploy
 ```
 
-`deploy` runs `npm install`, builds the site, and starts (or restarts) PM2 on **http://localhost:6000**.
+`deploy` runs `npm install`, builds the site, and starts (or restarts) PM2 on **http://localhost:7603**.
 
 Other commands:
 

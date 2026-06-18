@@ -6,7 +6,7 @@
     "dev": "npx astro dev",
     "build": "npx astro build",
     "preview": "npx astro preview",
-    "preview:prod": "npx astro preview --port 6000 --host 0.0.0.0",
+    "preview:prod": "npx astro preview --port 7603 --host 0.0.0.0",
     "pm2:start": "pm2 start ecosystem.config.cjs",
     "pm2:stop": "pm2 stop cleanair-web",
     "pm2:restart": "pm2 restart cleanair-web",
