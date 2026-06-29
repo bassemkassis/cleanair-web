@@ -44,6 +44,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
               <th class="px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wider">ID X3</th>
               <th class="px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wider">Version App</th>
               <th class="px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wider text-center">Dernière version</th>
+              <th class="px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wider">Dernière connexion</th>
             </tr>
           </thead>
           <tbody id="users-body" class="divide-y divide-gray-100"></tbody>
@@ -99,6 +100,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
             <td class="px-4 py-3 text-gray-600">${escapeHtml(u.id_x3 || '—')}</td>
             <td class="px-4 py-3 text-gray-600">${escapeHtml(u.appversion || '—')}</td>
             <td class="px-4 py-3 text-center">${versionBadge}</td>
+            <td class="px-4 py-3 text-gray-600">${u.lastLoginTime ? new Date(Number(u.lastLoginTime)).toLocaleString('fr-FR') : '—'}</td>
           </tr>`;
       }).join('');
     }

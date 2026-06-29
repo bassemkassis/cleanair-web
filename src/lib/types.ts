@@ -183,6 +183,7 @@ export interface User {
   email?: string;
   appversion?: string;
   isLastVersion?: boolean;
+  lastLoginTime?: string | number;
 }
 
 export interface DraftFilters {
