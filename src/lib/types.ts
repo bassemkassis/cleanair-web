@@ -177,8 +177,12 @@ export interface InterventionDraft {
 export interface User {
   id?: string;
   id_x3?: string;
+  realm?: string;
   fullname?: string;
   username?: string;
+  email?: string;
+  appversion?: string;
+  isLastVersion?: boolean;
 }
 
 export interface DraftFilters {
